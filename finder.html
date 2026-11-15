@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Finder | Speed Eye Digital Agency &amp; Security</title>
+<style>:root{--blue:#00D4FF;--green:#00FF88}*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+body{background:#05070a;color:#fff;line-height:1.5}.wrap{max-width:560px;margin:0 auto;padding:32px 20px}h1{font-size:28px;margin-bottom:8px}
+.card{background:#11141a;border:1px solid #222;border-radius:16px;padding:24px;margin-top:16px}input{width:100%;padding:13px;background:#000;border:1px solid #333;border-radius:10px;color:#fff;margin-top:8px}
+button{width:100%;padding:14px;border:0;border-radius:10px;background:var(--blue);color:#000;font-weight:700;font-size:16px;cursor:pointer;margin-top:12px}button.stop{background:transparent;border:1px solid var(--blue);color:var(--blue)}
+.small{color:#9aa3b2;font-size:13px;margin-top:8px}.msg{margin-top:12px;font-size:14px;overflow-wrap:anywhere}.err{color:#ff6b88}.ok{color:var(--green)}
+#banner{background:var(--green);color:#000;font-weight:700;text-align:center;padding:12px;position:sticky;top:0}a{color:var(--blue)}:focus-visible{outline:2px solid var(--blue);outline-offset:2px}</style></head><body>
+<div id="banner" class="hidden" hidden role="status">This phone is sharing its location with Speed Eye Finder</div>
+<div class="wrap"><p style="color:var(--blue);font-weight:700">Speed Eye Digital Agency &amp; Security</p><h1>Owner's Finder</h1>
+<label for="code" class="small">Your Finder code (shown after you paid)</label><input id="code" autocomplete="off" maxlength="36">
+<div class="card"><b>1. On the phone you want to find</b>
+<p class="small">Open this page on that phone, tap Start sharing, and allow location. Sharing only works while this page stays open, and a green bar shows whenever it is on. Use this only on a phone that belongs to you.</p>
+<button id="start">Start sharing</button><button id="stop" class="stop" hidden>Stop sharing</button><p id="m1" class="msg"></p></div>
+<div class="card"><b>2. Find it from any phone or computer</b><p class="small">Each lookup uses 1 track.</p>
+<button id="find">Find my phone</button><p id="m2" class="msg"></p></div>
+<p class="small" style="text-align:center;margin-top:24px"><a href="finder-terms.html">Finder terms</a> · Questions or to delete your data (POPIA): nkosiyabou7@gmail.com · +27 81 798 1529</p></div>
+<script>
+const API='https://jrufiduhrmxampgkaojc.supabase.co/functions/v1/finder',KEY='sb_publishable_bpHf0A1XLaXKAPGqjRxdNw_IUas84iL';
+const $=id=>document.getElementById(id);let watch=null,last=0;
+const call=b=>fetch(API,{method:'POST',headers:{'Content-Type':'application/json',apikey:KEY},body:JSON.stringify(Object.assign({code:$('code').value.trim()},b))}).then(async r=>({ok:r.ok,d:await r.json()}));
+function msg(id,t,c){const e=$(id);e.className='msg '+(c||'');e.textContent=t}
+$('code').value=location.hash.slice(1);
+$('start').onclick=()=>{if(!navigator.geolocation)return msg('m1','This browser cannot share location.','err');
+ watch=navigator.geolocation.watchPosition(async p=>{if(Date.now()-last<30000)return;last=Date.now();
+  const r=await call({action:'report',lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy});
+  if(r.ok){$('banner').hidden=false;$('start').hidden=true;$('stop').hidden=false;msg('m1','Sharing. Keep this page open.','ok')}else{stop();msg('m1',r.d.error,'err')}},
+  e=>msg('m1','Location was not allowed. Allow location for this page and try again.','err'),{enableHighAccuracy:true});};
+function stop(){if(watch!==null)navigator.geolocation.clearWatch(watch);watch=null;$('banner').hidden=true;$('start').hidden=false;$('stop').hidden=true}
+$('stop').onclick=()=>{stop();msg('m1','Sharing stopped.')};
+$('find').onclick=async()=>{msg('m2','Looking…');const r=await call({action:'locate'});
+ if(!r.ok)return msg('m2',r.d.error,'err');const d=r.d,e=$('m2');e.className='msg ok';e.textContent='';
+ const a=document.createElement('a');a.href='https://www.google.com/maps?q='+encodeURIComponent(d.lat+','+d.lng);a.target='_blank';a.rel='noopener noreferrer';a.textContent='Open on map';
+ e.append('Last seen '+new Date(d.updated_at).toLocaleString()+', accurate to about '+Math.round(d.acc||0)+' m. Tracks left: '+d.tracksLeft+'. ',a)};
+</script></body></html>

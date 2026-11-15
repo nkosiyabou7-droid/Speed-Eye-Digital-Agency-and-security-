@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>24/7 Digital Army | Speed Eye Digital Agency &amp; Security</title>
+<style>
+:root{--bg:#05070a;--card:#11141a;--blue:#00D4FF;--green:#00FF88}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+body{background:var(--bg);color:#fff;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:32px 20px}
+h1{font-size:32px;line-height:1.15;margin:8px 0 12px}h1 span{color:var(--blue)}
+.sub{color:#9aa3b2;margin-bottom:20px}
+.card{background:var(--card);border:1px solid #222;border-radius:16px;padding:24px;margin-top:16px}
+.price{font-size:26px;font-weight:800;margin:4px 0 8px}
+label{font-size:13px;color:#9aa3b2;display:block;margin-top:12px}
+input,select{width:100%;padding:13px;background:#000;border:1px solid #333;border-radius:10px;color:#fff;margin-top:4px}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:13px;color:#c5ccd8}.chk input{width:auto;margin-top:3px}
+button{width:100%;padding:14px;border:0;border-radius:10px;background:var(--blue);color:#000;font-weight:700;font-size:16px;cursor:pointer;margin-top:18px}
+button:disabled{opacity:.5}
+.msg{min-height:22px;margin-top:12px;font-size:14px}.err{color:#ff6b88}.ok{color:var(--green)}
+.note{color:#9aa3b2;font-size:13px;margin-top:12px}
+footer{color:#6b7588;font-size:12px;text-align:center;padding:24px 20px 40px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+footer a{color:var(--blue)}</style></head><body><div class="wrap">
+<p style="color:var(--blue);font-weight:700">Speed Eye Digital Agency &amp; Security</p>
+<h1>24/7 Digital <span>Army</span></h1><p class="sub">Security monitoring and a weekly board report for your company.</p>
+<div class="card"><div class="price">R17,000 per month</div><p class="note">For companies. We contact you after payment to agree what is monitored.</p>
+<form id="f"></form><p class="msg" id="m" role="status"></p></div>
+<div class="card"><b>Your information (POPIA)</b>
+<p class="note">Speed Eye Digital Agency &amp; Security collects only what this form asks for, to provide this service. We do not sell it. You can ask us to see, correct or delete it at any time: nkosiyabou7@gmail.com or +27 81 798 1529. Information Officer: Amahle Mtshubungu. Payments are processed by Paystack in ZAR. Refunds, cancellations and delivery: <a href="refund-policy.html">see our policy</a>. Read our full <a href="privacy-terms.html">Privacy Policy and Terms</a>.</p></div>
+</div>
+<footer>Speed Eye Digital Agency &amp; Security · speedeye.co.za<br>Owner: Amahle Mtshubungu · nkosiyabou7@gmail.com · +27 81 798 1529<br>Umzimvubu, Eastern Cape 4735<br>CIPC: [PASTE HERE] · SARS: [PASTE HERE] · B-BBEE: [PASTE HERE]<br><a href="privacy-terms.html">Privacy &amp; Terms</a> · <a href="refund-policy.html">Refunds &amp; Delivery</a></footer>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.109.0/dist/umd/supabase.js"></script>
+<script>
+const SB_URL='https://jrufiduhrmxampgkaojc.supabase.co',SB_KEY='sb_publishable_bpHf0A1XLaXKAPGqjRxdNw_IUas84iL',PK='pk_live_YOUR_REAL_PAYSTACK_PUBLIC_KEY_HERE';
+const C={"fields": [{"id": "name", "label": "Full name", "attrs": {"required": "", "autocomplete": "name", "maxlength": "80"}}, {"id": "email", "label": "Email", "attrs": {"type": "email", "required": "", "autocomplete": "email"}}, {"id": "phone", "label": "Cellphone", "attrs": {"type": "tel", "required": "", "autocomplete": "tel", "placeholder": "+27\u2026"}}, {"id": "co", "label": "Company name", "attrs": {"required": "", "maxlength": "100"}, "extra": 1}], "plans": [{"label": "Digital Army - first month", "amount": 17000}], "checks": ["I agree that Speed Eye may use my information for this service, as set out in the POPIA notice."], "button": "Pay R17,000 and sign up", "done": "Thank you. Payment received. We will contact you within 1 business day.", "army": "army1"};
+const db=supabase.createClient(SB_URL,SB_KEY),f=document.getElementById('f'),m=document.getElementById('m');
+let errs=0;const rep=t=>{if(errs++<3)db.from('army_errors').insert({army:C.army,page:location.pathname,message:String(t).slice(0,300)}).then(()=>{})};
+addEventListener('error',e=>rep(e.message));addEventListener('unhandledrejection',e=>rep(e.reason));
+db.from('army_control').select('enabled,message').eq('army',C.army).maybeSingle().then(({data})=>{if(data&&!data.enabled){f.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);say(data.message||'This service is paused. Please try again later.','err')}});
+const say=(t,c)=>{m.className='msg '+(c||'');m.textContent=t};
+function add(tag,attrs,text){const e=document.createElement(tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text)e.textContent=text;return e}
+C.fields.forEach(x=>{f.append(add('label',{for:x.id},x.label));f.append(add('input',Object.assign({id:x.id,name:x.id},x.attrs||{})))});
+if(C.plans.length>1){f.append(add('label',{for:'plan'},'Choose a plan'));const s=add('select',{id:'plan'});C.plans.forEach((p,i)=>s.append(add('option',{value:i},p.label)));f.append(s)}
+C.checks.forEach((t,i)=>{const l=add('label',{class:'chk'});l.append(add('input',{type:'checkbox',id:'c'+i,required:''}),add('span',{},t));f.append(l)});
+const b=add('button',{type:'submit'},C.button);f.append(b);
+const val=id=>document.getElementById(id).value.trim();
+f.addEventListener('submit',async e=>{e.preventDefault();b.disabled=true;say('Saving…');
+ const plan=C.plans[C.plans.length>1?Number(val('plan')):0],id=crypto.randomUUID();
+ const row={id,army:C.army,name:val('name'),email:val('email'),phone:val('phone'),extra:C.fields.filter(x=>x.extra).map(x=>val(x.id)).join(' | ')||null,plan:plan?plan.label:null,consent:true};
+ const {error}=await db.from('signups').insert(row);
+ if(error){rep(error.message);say('Could not save. Check your details and try again.','err');b.disabled=false;return}
+ if(!plan||!plan.amount){f.reset();say(C.done,'ok');b.disabled=false;return}
+ PaystackPop.setup({key:PK,email:row.email,amount:Math.round(plan.amount*100),currency:'ZAR',ref:id,metadata:{army:C.army,plan:plan.label},
+  callback:function(){f.reset();say(C.done,'ok');b.disabled=false},
+  onClose:function(){say('Payment not completed. Your details are saved; press the button to pay.','err');b.disabled=false}}).openIframe()});
+</script></body></html>
