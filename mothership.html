@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speed Eye Mothership</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--bg:#05070a;--card:#11141a;--blue:#00D4FF;--green:#00FF88;--red:#FF0033;--white:#fff}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+body{background:var(--bg);color:var(--white)}
+.hidden{display:none!important}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--card);border:1px solid #222;border-radius:20px;padding:32px;width:100%;max-width:420px;text-align:center}
+input,select,textarea{width:100%;padding:13px;background:#000;border:1px solid #333;border-radius:10px;color:#fff;margin:8px 0}
+label{font-size:13px;color:#9aa3b2;display:block;margin-top:8px;text-align:left}
+.btn{padding:13px 20px;border-radius:10px;border:none;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
+.btn-blue{background:var(--blue);color:#000}
+.btn-green{background:var(--green);color:#000}
+.btn-outline{background:transparent;border:1px solid var(--blue);color:var(--blue)}
+.btn-small{width:auto;padding:8px 14px;font-size:13px;margin:4px 4px 0 0}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 5%;background:#0a0d12;border-bottom:1px solid #1a1d25;flex-wrap:wrap;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:20px;padding:24px 5%}
+.card{background:var(--card);border:1px solid #222;border-radius:16px;padding:24px;position:relative}
+.card.wide{grid-column:1/-1}
+.card h3{color:var(--blue);margin-bottom:8px}
+.tag{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.live{background:#00FF8822;color:var(--green);border:1px solid var(--green)}
+.small{color:#9aa3b2;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.log{background:#000;border:1px solid #222;border-radius:10px;padding:12px;font-size:13px;line-height:1.8;margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+a{color:var(--blue)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99}
+.modal-box{background:var(--card);border:1px solid #333;border-radius:20px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow:auto}
+.delete-btn{position:absolute;top:12px;right:12px;background:var(--red);color:#fff;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-weight:700}
+.stat{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+.stat-box{background:#000;border:1px solid #222;border-radius:12px;padding:12px 16px;flex:1;min-width:120px}
+.stat-box b{font-size:22px;display:block}
+.msg{min-height:20px;margin-top:10px;font-size:14px}
+.err{color:#ff6b88}.ok{color:var(--green)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="center">
+  <form class="login-box" id="loginForm">
+    <h1>SPEED EYE<br><span style="color:var(--blue)">MOTHERSHIP</span></h1>
+    <p class="small">Digital Agency &amp; Security<br>Owner only</p>
+    <input type="email" id="loginEmail" placeholder="Owner email" autocomplete="username" required>
+    <input type="password" id="loginPass" placeholder="Owner password" autocomplete="current-password" required>
+    <input type="text" id="loginCode" placeholder="6-digit code (if MFA is on)" inputmode="numeric" autocomplete="one-time-code" class="hidden">
+    <button class="btn btn-blue" type="submit">Log in</button>
+    <p class="msg err" id="loginMsg" role="alert"></p>
+  </form>
+</div>
+
+<div id="dash" class="hidden">
+  <div class="topbar">
+    <div><b>SPEED EYE MOTHERSHIP</b> <span class="tag live">OWNER</span> <span id="siteCount" class="small"></span></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-green btn-small" id="addBtn">+ Add website</button>
+      <button class="btn btn-outline btn-small" id="logoutBtn">Log out</button>
+    </div>
+  </div>
+
+  <div style="padding:24px 5% 0"><h2>Commander daily report</h2>
+    <p class="small">Sent every morning at 7am to the owner only.</p></div>
+
+  <div class="grid">
+    <div class="card wide" style="border-color:var(--blue)">
+      <h3>Report for <span id="reportDate">today</span></h3>
+      <div class="stat">
+        <div class="stat-box"><span class="small">Paid today</span><b id="moneyToday">R0</b></div>
+        <div class="stat-box"><span class="small">Paid total</span><b id="moneyTotal">R0</b></div>
+        <div class="stat-box"><span class="small">Soldier actions today</span><b id="soldierCount">0</b></div>
+        <div class="stat-box"><span class="small">New signups today</span><b id="newSignups">0</b></div>
+      </div>
+      <div class="log" id="dailyReportText">Loading…</div>
+      <button class="btn btn-outline btn-small" id="refreshReport">Refresh</button>
+      <button class="btn btn-blue btn-small" id="testReport">Send test report to me</button>
+      <p class="msg" id="reportMsg"></p>
+    </div>
+    <div class="card">
+      <h3>Soldier activity</h3>
+      <p class="small">Last 20 actions.</p>
+      <div class="log" id="soldierActivity">Loading…</div>
+      <button class="btn btn-outline btn-small" id="refreshSoldiers">Refresh</button>
+    </div>
+  </div>
+
+  <div style="padding:0 5%"><h2>Army control</h2><p class="small">Pause or run each Army. A paused Army stops taking signups straight away.</p></div>
+  <div class="grid"><div class="card" id="control">Loading…</div>
+    <div class="card"><h3>Errors reported by Army pages</h3><div class="log" id="armyErrors">Loading…</div><button class="btn btn-outline btn-small" id="refreshErrors">Refresh</button></div></div>
+  <div style="padding:0 5%"><h2>Speed Eye websites</h2>
+    <p class="small">Speed Eye only. BMH is separate and not listed here.</p></div>
+  <div class="grid" id="websitesGrid"></div>
+
+  <div class="grid">
+    <div class="card"><h3>Grant calculator</h3>
+      <input type="number" id="benef" placeholder="Beneficiaries" min="0" aria-label="Beneficiaries">
+      <p>Monthly: <b id="grantRev">R0</b></p><p class="small">R2.50 × beneficiaries</p></div>
+    <div class="card"><h3>Legal</h3>
+      <p class="small">CIPC: [paste here]<br>MOI: [paste here]<br>B-BBEE: [paste here]<br>SARS: [paste here]</p></div>
+    <div class="card"><h3>Payments (Paystack)</h3><div class="log" id="paymentsList">Loading…</div></div>
+  </div>
+
+  <div style="padding:0 5% 40px;text-align:center;color:#6b7588;font-size:14px">
+    Speed Eye Digital Agency &amp; Security — speedeye.co.za<br>
+    Owner: Amahle Mtshubungu | nkosiyabou7@gmail.com | +27 81 798 1529 | Umzimvubu, Eastern Cape 4735<br>
+    POPIA compliant | BMH is separate</div>
+</div>
+
+<div id="addModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <form class="modal-box" id="siteForm">
+    <h2 id="modalTitle">Add website</h2>
+    <label for="newName">Website name *</label><input type="text" id="newName" required maxlength="80">
+    <label for="newUrl">Website link *</label><input type="text" id="newUrl" placeholder="https://…" required>
+    <label for="newType">Type</label>
+    <select id="newType"><option value="ARMY">ARMY</option><option value="SHOP">SHOP</option><option value="OTHER">OTHER</option></select>
+    <label for="newPrice">Price</label><input type="text" id="newPrice" maxlength="80">
+    <label for="newIncome">Monthly income (R)</label><input type="number" id="newIncome" min="0">
+    <label for="newDesc">What does it do?</label><textarea id="newDesc" rows="3" maxlength="400"></textarea>
+    <label for="newStatus">Status</label>
+    <select id="newStatus"><option value="LIVE">LIVE</option><option value="BUILDING">BUILDING</option><option value="PAUSED">PAUSED</option></select>
+    <button class="btn btn-green" type="submit">Save website</button>
+    <button class="btn btn-outline" type="button" id="cancelModal">Cancel</button>
+    <p class="msg" id="saveMsg"></p>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.109.0/dist/umd/supabase.js"></script>
+<script>
+// ---- CONFIG: paste your project values (the anon key is public by design; RLS protects the data) ----
+const SUPABASE_URL = 'https://jrufiduhrmxampgkaojc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bpHf0A1XLaXKAPGqjRxdNw_IUas84iL';
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const rand = n => 'R' + Number(n || 0).toLocaleString();
+const safeUrl = u => { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; } catch { return null; } };
+const startOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
+let sites = [], editId = null;
+
+const defaultSites = [
+  {name:"Speed Eye - Main",url:"https://nkosiyabou7-droid.github.io/speedeye/",type:"OTHER",price:"Main brand",income:0,description:"Main Speed Eye website.",status:"BUILDING"},
+  {name:"Army 1 - 24/7 Digital Army",url:"https://nkosiyabou7-droid.github.io/speedeye/army1.html",type:"ARMY",price:"R17,000/month",income:17000,description:"Companies sign up, AI protects IP, scans emails, blocks backdoors.",status:"LIVE"},
+  {name:"Army 2 - FYI Audit",url:"https://nkosiyabou7-droid.github.io/speedeye/army2.html",type:"ARMY",price:"R4,000/week",income:16000,description:"AI Friday report. Not a registered audit.",status:"LIVE"},
+  {name:"Army 3 - Grant Insurer",url:"https://nkosiyabou7-droid.github.io/speedeye/army3.html",type:"ARMY",price:"R2.50 / beneficiary - municipality pays",income:0,description:"Beneficiary signs up, SMS to the registered number, reply 1 YES or 0 NO. No USSD.",status:"LIVE"},
+  {name:"Army 4 - Owner's Finder",url:"https://nkosiyabou7-droid.github.io/speedeye/army4.html",type:"ARMY",price:"R5/track or R499/100",income:0,description:"Owner tracks their own device only. IMEI via *#06#.",status:"LIVE"}
+];
+
+// ---- AUTH ----
+async function showDashIfOwner(session) {
+  const owner = session ? (await db.rpc('is_owner')).data === true : false;
+  if (owner) {
+    $('loginPage').classList.add('hidden'); $('dash').classList.remove('hidden');
+    await Promise.all([loadSites(), loadDailyReport(), loadSoldierActivity(), loadPayments(), loadControl(), loadErrors()]);
+  } else {
+    $('dash').classList.add('hidden'); $('loginPage').classList.remove('hidden');
+    if (session) { await db.auth.signOut(); $('loginMsg').textContent = 'This account is not the owner.'; }
+  }
+}
+
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('loginMsg').textContent = '';
+  if (SUPABASE_URL.includes('YOUR_') || SUPABASE_KEY.includes('YOUR_')) { $('loginMsg').textContent = 'Not connected yet: paste your Supabase URL and anon key at the top of this file.'; return; }
+  const { data, error } = await db.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPass').value });
+  if (error) { $('loginMsg').textContent = 'Login failed. Check email and password.'; return; }
+  const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+    const code = $('loginCode').value.trim();
+    if (!code) { $('loginCode').classList.remove('hidden'); $('loginMsg').textContent = 'Enter your 6-digit authenticator code.'; return; }
+    const { data: f } = await db.auth.mfa.listFactors();
+    const factor = f && f.totp && f.totp[0];
+    const { error: mErr } = await db.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+    if (mErr) { $('loginMsg').textContent = 'Wrong code. Try again.'; return; }
+  }
+  const { data: s } = await db.auth.getSession();
+  showDashIfOwner(s.session);
+});
+$('logoutBtn').addEventListener('click', async () => { await db.auth.signOut(); location.reload(); });
+
+// ---- REPORT / SOLDIERS / PAYMENTS (all reads are protected by RLS) ----
+async function loadDailyReport() {
+  const { data } = await db.from('commander_reports').select('*').order('created_at', { ascending: false }).limit(1);
+  $('dailyReportText').textContent = data && data[0] ? data[0].summary : 'No report yet. The Commander sends the first one at 7am.';
+  if (data && data[0]) $('reportDate').textContent = new Date(data[0].created_at).toLocaleDateString();
+  const [pay, sol, sig] = await Promise.all([
+    db.from('payments').select('amount,created_at').eq('status', 'success'),
+    db.from('soldier_logs').select('id', { count: 'exact', head: true }).gte('created_at', startOfDay()),
+    db.from('signups').select('id', { count: 'exact', head: true }).gte('created_at', startOfDay())
+  ]);
+  const rows = pay.data || [], t0 = startOfDay();
+  $('moneyTotal').textContent = rand(rows.reduce((a, p) => a + Number(p.amount || 0), 0));
+  $('moneyToday').textContent = rand(rows.filter(p => p.created_at >= t0).reduce((a, p) => a + Number(p.amount || 0), 0));
+  $('soldierCount').textContent = sol.count || 0;
+  $('newSignups').textContent = sig.count || 0;
+}
+async function loadSoldierActivity() {
+  const { data } = await db.from('soldier_logs').select('*').order('created_at', { ascending: false }).limit(20);
+  $('soldierActivity').textContent = data && data.length
+    ? data.map(l => `• [${l.army}] ${l.soldier}: ${l.action} - ${l.result}`).join('\n')
+    : 'No Soldier activity yet.';
+}
+async function loadPayments() {
+  const { data } = await db.from('payments').select('*').order('created_at', { ascending: false }).limit(20);
+  $('paymentsList').textContent = data && data.length
+    ? data.map(p => `${new Date(p.created_at).toLocaleDateString()}  ${rand(p.amount)}  ${p.status}  ${p.email || ''}`).join('\n')
+    : 'No payments yet.';
+}
+$('refreshReport').addEventListener('click', loadDailyReport);
+$('refreshSoldiers').addEventListener('click', loadSoldierActivity);
+$('testReport').addEventListener('click', async () => {
+  const m = $('reportMsg'); m.className = 'msg'; m.textContent = 'Sending…';
+  const { error } = await db.functions.invoke('send-daily-report', { body: { test: true } });
+  m.className = 'msg ' + (error ? 'err' : 'ok');
+  m.textContent = error ? 'Could not send. Check the send-daily-report function.' : 'Test report sent to the owner.';
+  loadDailyReport();
+});
+
+// ---- ARMY CONTROL + ERRORS ----
+const ARMY_NAMES = {army1:'Army 1 - Digital Army', army2:'Army 2 - FYI Audit', army3:'Army 3 - Grant Insurer', army4:'Army 4 - Owner\'s Finder'};
+async function loadControl() {
+  const { data } = await db.from('army_control').select('*').order('army'), box = $('control');
+  box.replaceChildren(el('h3', {}, 'Armies'));
+  (data || []).forEach(a => box.append(
+    el('p', { class: 'small', style: 'margin-top:10px' }, el('b', {}, (ARMY_NAMES[a.army] || a.army) + ': '), a.enabled ? 'RUNNING' : 'PAUSED'),
+    el('button', { class: 'btn btn-outline btn-small', onclick: async () => {
+      let msg = a.message;
+      if (a.enabled) { msg = prompt('Message visitors see while paused:', 'Back soon. Please try again later.'); if (msg === null) return; }
+      await db.from('army_control').update({ enabled: !a.enabled, message: msg }).eq('army', a.army); loadControl(); } }, a.enabled ? 'Pause' : 'Run')));
+}
+async function loadErrors() {
+  const { data } = await db.from('army_errors').select('*').order('created_at', { ascending: false }).limit(10);
+  $('armyErrors').textContent = data && data.length ? data.map(e => `• [${e.army}] ${e.message} - ${new Date(e.created_at).toLocaleString()}`).join('\n') : 'No errors reported.';
+}
+$('refreshErrors').addEventListener('click', loadErrors);
+
+// ---- WEBSITES (stored in Supabase, rendered without innerHTML) ----
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => k === 'class' ? n.className = v : k.startsWith('on') ? n.addEventListener(k.slice(2), v) : n.setAttribute(k, v));
+  kids.forEach(k => n.append(k));
+  return n;
+}
+async function loadSites() {
+  let { data, error } = await db.from('websites').select('*').order('created_at');
+  if (!error && data && !data.length) { await db.from('websites').insert(defaultSites); ({ data } = await db.from('websites').select('*').order('created_at')); }
+  sites = data || [];
+  renderSites();
+}
+function renderSites() {
+  const grid = $('websitesGrid'); grid.replaceChildren();
+  sites.forEach(s => {
+    const href = safeUrl(s.url);
+    grid.append(el('div', { class: 'card' },
+      el('button', { class: 'delete-btn', 'aria-label': 'Remove ' + s.name, onclick: () => deleteSite(s) }, '×'),
+      el('span', { class: 'tag live' }, `${s.type} - ${s.status}`),
+      el('h3', { style: 'margin-top:10px' }, s.name),
+      el('p', { class: 'small' }, s.description || ''),
+      el('p', { class: 'small' }, el('b', {}, 'Price: '), s.price || ''),
+      el('p', { class: 'small' }, el('b', {}, 'Link: '), href ? el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, href) : 'Invalid link'),
+      el('div', { class: 'log' }, `Income: ${rand(s.income)} / month`),
+      href ? el('a', { class: 'btn btn-blue btn-small', href, target: '_blank', rel: 'noopener noreferrer', style: 'display:inline-block;text-decoration:none' }, 'Open website') : '',
+      el('button', { class: 'btn btn-outline btn-small', onclick: () => openModal(s) }, 'Edit')
+    ));
+  });
+  $('siteCount').textContent = `(${sites.length} websites)`;
+}
+function openModal(s) {
+  editId = s ? s.id : null;
+  $('modalTitle').textContent = s ? 'Edit website' : 'Add website';
+  $('newName').value = s ? s.name : ''; $('newUrl').value = s ? s.url : '';
+  $('newType').value = s ? s.type : 'ARMY'; $('newPrice').value = s ? s.price || '' : '';
+  $('newIncome').value = s ? s.income || 0 : ''; $('newDesc').value = s ? s.description || '' : '';
+  $('newStatus').value = s ? s.status : 'LIVE'; $('saveMsg').textContent = '';
+  $('addModal').classList.remove('hidden'); $('newName').focus();
+}
+const closeModal = () => $('addModal').classList.add('hidden');
+$('addBtn').addEventListener('click', () => openModal(null));
+$('cancelModal').addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+$('siteForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  let url = $('newUrl').value.trim(); if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  const clean = safeUrl(url), m = $('saveMsg');
+  if (!clean) { m.className = 'msg err'; m.textContent = 'Enter a valid web address.'; return; }
+  const row = { name: $('newName').value.trim(), url: clean, type: $('newType').value, price: $('newPrice').value.trim(),
+    income: Number($('newIncome').value || 0), description: $('newDesc').value.trim(), status: $('newStatus').value };
+  const { error } = editId ? await db.from('websites').update(row).eq('id', editId) : await db.from('websites').insert(row);
+  if (error) { m.className = 'msg err'; m.textContent = 'Could not save. Try again.'; return; }
+  closeModal(); loadSites();
+});
+async function deleteSite(s) {
+  if (!confirm(`Remove ${s.name} from Mothership? The real website is not deleted.`)) return;
+  const { error } = await db.from('websites').delete().eq('id', s.id);
+  if (!error) loadSites();
+}
+
+// ---- GRANT CALCULATOR ----
+$('benef').addEventListener('input', () => { $('grantRev').textContent = 'R ' + (Number($('benef').value || 0) * 2.5).toLocaleString(); });
+
+// ---- START ----
+db.auth.getSession().then(({ data }) => showDashIfOwner(data.session));
+</script>
+</body>
+</html>
